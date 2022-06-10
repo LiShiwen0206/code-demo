@@ -1,11 +1,3 @@
-/*
- * Copyright By ZATI
- * Copyright By 3a3c88295d37870dfd3b25056092d1a9209824b256c341f2cdc296437f671617
- * All rights reserved.
- *
- * If you are not the intended user, you are hereby notified that any use, disclosure, copying, printing, forwarding or
- * dissemination of this property is strictly prohibited. If you have got this file in error, delete it from your system.
- */
 package com.lishiwen.utils;
 
 import com.alibaba.fastjson.JSON;
@@ -28,7 +20,7 @@ import java.util.Base64;
  * 部分方法
  * <br/>============
  *
- * @author : za-lishiwen
+ * @author : lishiwen
  * @Class_name : AesUtils
  * @Date : 2022/6/10
  */
@@ -55,7 +47,7 @@ public class AesUtils {
      *
      * @param strToEncrypt:
      * @return : {@link String}
-     * @author : za-lishiwen
+     * @author : lishiwen
      * @Date : 2022/6/10
      */
     public static String encrypt(String strToEncrypt) {
@@ -82,7 +74,7 @@ public class AesUtils {
      *
      * @param strToDecrypt:
      * @return : {@link String}
-     * @author : za-lishiwen
+     * @author : lishiwen
      * @Date : 2022/6/10
      */
     public static String decrypt(String strToDecrypt) {
