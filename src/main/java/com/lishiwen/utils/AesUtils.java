@@ -1,16 +1,21 @@
 package com.lishiwen.utils;
 
-import com.alibaba.fastjson.JSON;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.crypto.Cipher;
+import javax.crypto.CipherInputStream;
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
-import java.security.Provider;
-import java.security.Security;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.security.spec.KeySpec;
 import java.util.Base64;
 
@@ -124,12 +129,95 @@ public class AesUtils {
 
     }
 
+    /**
+     * ============<br/>
+     * aes文件加密
+     * <br/>============
+     *
+     * @param file:
+     * @return : {@link String}
+     * @author : za-lishiwen
+     * @Date : 2022/6/13
+     */
+    public static String encryptFile(File file) {
+        try {
+            // 初期ベクトル準備
+            IvParameterSpec ivspec = new IvParameterSpec(IV.getBytes());
+            SecretKeyFactory factory = SecretKeyFactory.getInstance(KEY_ALGORITHM);
+            KeySpec spec = new PBEKeySpec(APP_KEY.toCharArray(), SALT.getBytes(), INTERNAL_COUNT, KEY_LENGTH);
+            SecretKey tmp = factory.generateSecret(spec);
+            SecretKeySpec secretKey = new SecretKeySpec(tmp.getEncoded(), ALGORITHM);
+            Cipher cipher = Cipher.getInstance(TRANS_FORMATION);
+            cipher.init(Cipher.ENCRYPT_MODE, secretKey, ivspec);
+
+            InputStream in = new FileInputStream(file);
+            CipherInputStream cis = new CipherInputStream(in, cipher);
+
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            byte[] buffer = new byte[1024];
+            int len = 0;
+            while ((len = cis.read(buffer)) != -1) {
+                baos.write(buffer, 0, len);
+            }
+            byte[] bytes = baos.toByteArray();
+            cis.close();
+            baos.close();
+            in.close();
+            return java.util.Base64.getEncoder().encodeToString(bytes);
+        } catch (Exception e) {
+            log.warn("Error while encryptFile encrypting,fileName is {}", file.getName());
+        }
+
+        return null;
+    }
+
+    /**
+     * ============<br/>
+     * aes文件解密
+     * <br/>============
+     *
+     * @param strToDecrypt : 需解密的字符串
+     * @param filePath:    输出位置
+     * @return : {@link String}
+     * @author : za-lishiwen
+     * @Date : 2022/6/13
+     */
+    public static String decryptFile(String strToDecrypt, String filePath) {
+        try {
+            IvParameterSpec ivspec = new IvParameterSpec(IV.getBytes());
+            SecretKeyFactory factory = SecretKeyFactory.getInstance(KEY_ALGORITHM);
+            KeySpec spec = new PBEKeySpec(APP_KEY.toCharArray(), SALT.getBytes(), INTERNAL_COUNT, KEY_LENGTH);
+            SecretKey tmp = factory.generateSecret(spec);
+            SecretKeySpec secretKey = new SecretKeySpec(tmp.getEncoded(), ALGORITHM);
+            Cipher cipher = Cipher.getInstance(TRANS_FORMATION);
+            cipher.init(Cipher.DECRYPT_MODE, secretKey, ivspec);
+            byte[] bytes = cipher.doFinal(Base64.getDecoder().decode(strToDecrypt));
+            Files.write(Paths.get(filePath), bytes, StandardOpenOption.CREATE);
+            return filePath;
+        } catch (Exception e) {
+            log.warn("Error while decryptFile decrypting,strToDecrypt is {}", strToDecrypt);
+        }
+        return null;
+    }
+
     public static void main(String[] args) {
-        String encrypt = encrypt("test");
-        String encryptNotSalt = encryptNotSalt("test");
-        Provider[] providers = Security.getProviders();
-        log.info(JSON.toJSONString(providers));
-        log.info("encrypt is {}", encrypt);
-        log.info("encryptNotSalt is {}", encryptNotSalt);
+        //
+        //String encrypt = encrypt("test");
+        //String encryptNotSalt = encryptNotSalt("test");
+        //Provider[] providers = Security.getProviders();
+        //log.info(JSON.toJSONString(providers));
+        //log.info("encrypt is {}", encrypt);
+        //log.info("encryptNotSalt is {}", encryptNotSalt);
+
+
+        String fileName = "/Users/test/Downloads/CONTRACT_20220607_00001_20220608103450552.csv";
+        File sourceFile = new File(fileName);
+        String s = encryptFile(sourceFile);
+        log.info(s);
+        //
+        //
+        //String fileOutPath = "/Users/test/Downloads/abc.csv";
+        //String strToDecrypt = "";
+        //String s1 = decryptFile(strToDecrypt, fileOutPath);
     }
 }
